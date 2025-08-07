@@ -30,7 +30,7 @@ resource "aws_route_table" "opsfleet_rt" {
 resource "aws_subnet" "pub_sub_1" {
   vpc_id            = aws_vpc.opsfleet_vpc.id
   cidr_block        = "172.20.1.0/24"
-  availability_zone = "us-east-2a"
+  availability_zone = "us-east-1a"
   map_public_ip_on_launch = true
 
   tags = {
@@ -41,7 +41,7 @@ resource "aws_subnet" "pub_sub_1" {
 resource "aws_subnet" "pub_sub_2" {
   vpc_id            = aws_vpc.opsfleet_vpc.id
   cidr_block        = "172.20.2.0/24"
-  availability_zone = "us-east-2b"
+  availability_zone = "us-east-1b"
   map_public_ip_on_launch = true
 
   tags = {
@@ -52,7 +52,7 @@ resource "aws_subnet" "pub_sub_2" {
 resource "aws_subnet" "priv_sub_1" {
   vpc_id            = aws_vpc.opsfleet_vpc.id
   cidr_block        = "172.20.16.0/24"
-  availability_zone = "us-east-2a"
+  availability_zone = "us-east-1a"
 
   tags = {
     Name = "opsfleet_priv_sub_1"
@@ -62,7 +62,7 @@ resource "aws_subnet" "priv_sub_1" {
 resource "aws_subnet" "priv_sub_2" {
   vpc_id            = aws_vpc.opsfleet_vpc.id
   cidr_block        = "172.20.17.0/24"
-  availability_zone = "us-east-2b"
+  availability_zone = "us-east-1b"
 
   tags = {
     Name = "opsfleet_priv_sub_2"
