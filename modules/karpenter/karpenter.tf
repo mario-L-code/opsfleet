@@ -85,3 +85,40 @@ resource "helm_release" "karpenter" {
     }
   ]
 }
+
+resource "kubernetes_manifest" "karpenter_provisioner" {
+  depends_on = [helm_release.karpenter]
+  manifest = {
+    apiVersion = "karpenter.sh/v1alpha5"
+    kind       = "Provisioner"
+    metadata = {
+      name = "default"
+    }
+    spec = {
+      requirements = [
+        {
+          key      = "kubernetes.io/arch"
+          operator = "In"
+          values   = ["amd64", "arm64"]
+        },
+        # {
+        #   key      = "node.kubernetes.io/instance-type"
+        #   operator = "In"
+        #   values = ["t3.micro", "t4g.micro"]
+
+        # }
+      ]
+      provider = {
+        subnetSelector = {
+          "karpenter.sh/discovery" = var.cluster_name
+        }
+        securityGroupSelector = {
+          "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+        }
+        instanceProfile = aws_iam_instance_profile.karpenter_node_instance_profile.name
+        capacityType    = "spot"
+      }
+      ttlSecondsAfterEmpty = 30
+    }
+  }
+}

@@ -9,3 +9,8 @@ output "oidc_provider_arn" {
 output "cluster_endpoint" {
   value = aws_eks_cluster.opsfleet_cluster.endpoint
 }
+
+output "cluster_certificate_authority_data" {
+  description = "Base64 encoded certificate data required to communicate with the cluster."
+  value       = aws_eks_cluster.opsfleet_cluster.certificate_authority[0].data
+}
