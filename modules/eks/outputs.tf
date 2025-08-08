@@ -9,4 +9,3 @@ output "oidc_provider_arn" {
 output "cluster_endpoint" {
   value = aws_eks_cluster.opsfleet_cluster.endpoint
 }
-

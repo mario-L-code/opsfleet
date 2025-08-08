@@ -17,3 +17,7 @@ variable "vpc_id" {
 variable "subnet_ids" {
   type = list(string)
 }
+
+# variable "node_iam_instance_profile_name" {
+#     type = string
+# }
