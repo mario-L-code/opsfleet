@@ -1,9 +1,9 @@
-# EKS with Karpenter POC
+# EKS with Karpenter
 
 This repository contains Terraform code to deploy an AWS EKS cluster with Karpenter for autoscaling, supporting both x86 and arm64 (Graviton) instances, including Spot instances for cost optimization. The cluster is deployed in a dedicated VPC.
 
 ## Prerequisites
-- AWS CLI configured with credentials (`mike` profile).
+- AWS CLI configured with credentials.
 - Terraform >= 1.5.0.
 - kubectl installed.
 - Helm installed.
@@ -33,13 +33,7 @@ This repository contains Terraform code to deploy an AWS EKS cluster with Karpen
 
 5. **Update kubeconfig**:
    ```bash
-   aws eks update-kubeconfig --region us-east-1 --name opsfleet --profile mike
-   ```
-
-6. **Apply Karpenter NodePool and EC2NodeClass**:
-   ```bash
-   kubectl apply -f modules/karpenter/nodepool.yaml
-   kubectl apply -f modules/karpenter/ec2nodeclass.yaml
+   aws eks update-kubeconfig --region us-east-1 --name opsfleet 
    ```
 
 ## Running Pods on x86 or Graviton Instances
@@ -64,34 +58,12 @@ spec:
     kubernetes.io/arch: amd64
 ```
 
-Apply:
+Deployment YAML files are ready to go for both x86 and Graviton servers:
 ```bash
-kubectl apply -f x86-pod.yaml
+kubectl apply -f ./modules/karpenter/test-x86.yaml
+kubectl apply -f ./modules/karpenter/test-graviton.yaml
 ```
 
-### Example: Run a Pod on Graviton
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: graviton-pod
-  namespace: default
-spec:
-  containers:
-  - name: nginx
-    image: nginx
-    resources:
-      requests:
-        cpu: "500m"
-        memory: "512Mi"
-  nodeSelector:
-    kubernetes.io/arch: arm64
-```
-
-Apply:
-```bash
-kubectl apply -f graviton-pod.yaml
-```
 
 ### Verify Node Type
 Check which nodes the pods are running on:
@@ -100,25 +72,21 @@ kubectl get pods -o wide
 kubectl get nodes -o wide
 ```
 
-Karpenter will provision `t3.medium` or `t3.large` for x86 (`amd64`) and `t4g.medium` or `t4g.large` for Graviton (`arm64`), using Spot or On-Demand instances based on availability.
+Karpenter will provision `t3.medium` for x86 (`amd64`) and `t4g.medium` for Graviton (`arm64`), using Spot instances.
 
 ## Cleanup
 ```bash
 terraform destroy
-kubectl delete -f modules/karpenter/nodepool.yaml
-kubectl delete -f modules/karpenter/ec2nodeclass.yaml
+kubectl delete -f ./modules/karpenter/test-x86.yaml
+kubectl delete -f ./modules/karpenter/test-graviton.yaml
 ```
 
-## Troubleshooting
-- Check Karpenter pods:
+## Extra CRDs installed for Karpenter to function
+- Self-signed cert manager:
   ```bash
-  kubectl get pods -n karpenter
-  kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter
+  kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml  
   ```
-- Verify NodePool and EC2NodeClass:
+- Karpenter CRDs:
   ```bash
-  kubectl get nodepool default
-  kubectl get ec2nodeclass default
+  kubectl apply -f ./karpenter/crds/.
   ```
-- Check EC2 instances:
-  - AWS Console: **EC2** > **Instances**
