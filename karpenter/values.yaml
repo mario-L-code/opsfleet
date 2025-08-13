@@ -1,0 +1,7 @@
+clusterName: "opsfleet-cluster" # Replace with your EKS cluster name
+clusterEndpoint: "https://9FF20B4FCBFAAD616958C0499E937F65.gr7.us-east-1.eks.amazonaws.com" # Replace with your EKS cluster endpoint (e.g., https://<cluster-endpoint>)
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::905418092624:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/9FF20B4FCBFAAD616958C0499E937F65" # Replace with the ARN of the karpenter-controller IAM role
+aws:
+  defaultInstanceProfile: "karpenter-node-instance-profile-opsfleet-cluster" # Replace with your instance profile name

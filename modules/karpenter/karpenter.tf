@@ -2,7 +2,8 @@ module "karpenter_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "5.34.0"
 
-  role_name                           = "karpenter-controller"
+  role_name                           = "karpenter-controller-${var.cluster_name}"
+  role_description                    = "IAM role for Karpenter controller service account"
   attach_karpenter_controller_policy = true
   karpenter_controller_cluster_name  = var.cluster_name
 
@@ -19,18 +20,20 @@ module "karpenter_irsa" {
 }
 
 resource "aws_iam_role" "karpenter_node_role" {
-  name = "karpenter-node-role"
+  name = "karpenter-node-role-${var.cluster_name}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
       Effect = "Allow",
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      },
+      Principal = { Service = "ec2.amazonaws.com" },
       Action = "sts:AssumeRole"
     }]
   })
+
+  tags = {
+    "karpenter.sh/discovery" = var.cluster_name
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "worker_node_AmazonEKSWorkerNodePolicy" {
@@ -48,19 +51,44 @@ resource "aws_iam_role_policy_attachment" "worker_node_AmazonEKSCNIPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
+resource "aws_iam_role_policy_attachment" "worker_node_AmazonSSMManagedInstanceCore" {
+  role       = aws_iam_role.karpenter_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_iam_instance_profile" "karpenter_node_instance_profile" {
-  name = "karpenter-node-instance-profile"
+  name = "karpenter-node-instance-profile-${var.cluster_name}"
   role = aws_iam_role.karpenter_node_role.name
 }
 
-resource "helm_release" "karpenter" {
-  name       = "karpenter"
-  namespace  = "karpenter"
-  repository = "https://charts.karpenter.sh"
-  chart      = "karpenter"
-  version    = "0.16.3"
+resource "null_resource" "verify_crds" {
+  provisioner "local-exec" {
+    command = <<EOT
+      export AWS_PROFILE=mike
+      until kubectl get crd nodepools.karpenter.sh >/dev/null 2>&1 && kubectl get crd ec2nodeclasses.karpenter.k8s.aws >/dev/null 2>&1 && kubectl get crd nodeclaims.karpenter.sh >/dev/null 2>&1; do
+        echo "Waiting for Karpenter CRDs to be available..."
+        sleep 5
+      done
+      echo "Karpenter CRDs are available."
+    EOT
+  }
+}
 
+resource "helm_release" "karpenter" {
+  timeout = 75
+  name = "karpenter"
+  namespace = "karpenter"
+  repository = "oci://public.ecr.aws/karpenter"
+  chart = "karpenter"
+  version = "1.6.1"
+  skip_crds = true
   create_namespace = true
+
+  depends_on = [
+    module.karpenter_irsa,
+    aws_iam_instance_profile.karpenter_node_instance_profile,
+    null_resource.verify_crds
+  ]
 
   set = [
     {
@@ -76,49 +104,8 @@ resource "helm_release" "karpenter" {
       value = module.karpenter_irsa.iam_role_arn
     },
     {
-      name  = "settings.aws.defaultInstanceProfile"
+      name  = "aws.defaultInstanceProfile"
       value = aws_iam_instance_profile.karpenter_node_instance_profile.name
-    },
-    {
-      name  = "settings.aws.subnetSelector"
-      value = jsonencode({ "karpenter.sh/discovery" = var.cluster_name })
     }
   ]
-}
-
-resource "kubernetes_manifest" "karpenter_provisioner" {
-  depends_on = [helm_release.karpenter]
-  manifest = {
-    apiVersion = "karpenter.sh/v1alpha5"
-    kind       = "Provisioner"
-    metadata = {
-      name = "default"
-    }
-    spec = {
-      requirements = [
-        {
-          key      = "kubernetes.io/arch"
-          operator = "In"
-          values   = ["amd64", "arm64"]
-        },
-        # {
-        #   key      = "node.kubernetes.io/instance-type"
-        #   operator = "In"
-        #   values = ["t3.micro", "t4g.micro"]
-
-        # }
-      ]
-      provider = {
-        subnetSelector = {
-          "karpenter.sh/discovery" = var.cluster_name
-        }
-        securityGroupSelector = {
-          "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-        }
-        instanceProfile = aws_iam_instance_profile.karpenter_node_instance_profile.name
-        capacityType    = "spot"
-      }
-      ttlSecondsAfterEmpty = 30
-    }
-  }
 }
