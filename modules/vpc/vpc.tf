@@ -1,3 +1,4 @@
+
 resource "aws_vpc" "opsfleet_vpc" {
   cidr_block           = "172.20.0.0/16"
   enable_dns_hostnames = true
@@ -5,11 +6,11 @@ resource "aws_vpc" "opsfleet_vpc" {
 
   tags = {
     Name                     = "opsfleet_vpc"
-    "kubernetes.io/cluster/opsfleet-cluster" = "owned"
+    "kubernetes.io/cluster/${var.cluster_name}-cluster" = "shared"
+    "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
-# Internet Gateway
 resource "aws_internet_gateway" "opsfleet_igw" {
   vpc_id = aws_vpc.opsfleet_vpc.id
 
@@ -18,7 +19,6 @@ resource "aws_internet_gateway" "opsfleet_igw" {
   }
 }
 
-# Public Route Table
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.opsfleet_vpc.id
 
@@ -32,7 +32,6 @@ resource "aws_route_table" "public_rt" {
   }
 }
 
-# Public Subnets
 resource "aws_subnet" "pub_sub_1" {
   vpc_id                  = aws_vpc.opsfleet_vpc.id
   cidr_block              = "172.20.1.0/24"
@@ -41,8 +40,8 @@ resource "aws_subnet" "pub_sub_1" {
 
   tags = {
     Name                     = "opsfleet_pub_sub_1"
-    "kubernetes.io/cluster/opsfleet-cluster" = "shared"
-    "karpenter.sh/discovery" = "opsfleet-cluster"
+    "kubernetes.io/cluster/${var.cluster_name}-cluster" = "shared"
+    "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
@@ -54,12 +53,11 @@ resource "aws_subnet" "pub_sub_2" {
 
   tags = {
     Name                     = "opsfleet_pub_sub_2"
-    "kubernetes.io/cluster/opsfleet-cluster" = "shared"
-    "karpenter.sh/discovery" = "opsfleet-cluster"
+    "kubernetes.io/cluster/${var.cluster_name}-cluster" = "shared"
+    "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
-# Public Route Table Associations
 resource "aws_route_table_association" "pub_sub_1" {
   subnet_id      = aws_subnet.pub_sub_1.id
   route_table_id = aws_route_table.public_rt.id
@@ -70,7 +68,6 @@ resource "aws_route_table_association" "pub_sub_2" {
   route_table_id = aws_route_table.public_rt.id
 }
 
-# Elastic IPs for NAT Gateways
 resource "aws_eip" "nat_eip_1" {
   domain = "vpc"
 
@@ -87,7 +84,6 @@ resource "aws_eip" "nat_eip_2" {
   }
 }
 
-# NAT Gateways
 resource "aws_nat_gateway" "nat_1" {
   allocation_id = aws_eip.nat_eip_1.id
   subnet_id     = aws_subnet.pub_sub_1.id
@@ -110,7 +106,6 @@ resource "aws_nat_gateway" "nat_2" {
   depends_on = [aws_internet_gateway.opsfleet_igw]
 }
 
-# Private Subnets
 resource "aws_subnet" "priv_sub_1" {
   vpc_id            = aws_vpc.opsfleet_vpc.id
   cidr_block        = "172.20.16.0/24"
@@ -118,8 +113,8 @@ resource "aws_subnet" "priv_sub_1" {
 
   tags = {
     Name                     = "opsfleet_priv_sub_1"
-    "kubernetes.io/cluster/opsfleet-cluster" = "shared"
-    "karpenter.sh/discovery" = "opsfleet-cluster"
+    "kubernetes.io/cluster/${var.cluster_name}-cluster" = "shared"
+    "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
@@ -130,12 +125,11 @@ resource "aws_subnet" "priv_sub_2" {
 
   tags = {
     Name                     = "opsfleet_priv_sub_2"
-    "kubernetes.io/cluster/opsfleet-cluster" = "shared"
-    "karpenter.sh/discovery" = "opsfleet-cluster"
+    "kubernetes.io/cluster/${var.cluster_name}-cluster" = "shared"
+    "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
-# Private Route Tables
 resource "aws_route_table" "priv_rt_1" {
   vpc_id = aws_vpc.opsfleet_vpc.id
 
@@ -166,7 +160,6 @@ resource "aws_route_table" "priv_rt_2" {
   depends_on = [aws_nat_gateway.nat_2]
 }
 
-# Private Route Table Associations
 resource "aws_route_table_association" "priv_sub_1" {
   subnet_id      = aws_subnet.priv_sub_1.id
   route_table_id = aws_route_table.priv_rt_1.id

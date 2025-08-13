@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test-deployment
+  name: test-graviton
   namespace: default
 spec:
-  replicas: 10
+  replicas: 11
   selector:
     matchLabels:
       app: test
@@ -20,3 +20,5 @@ spec:
           requests:
             cpu: "500m"
             memory: "512Mi"
+      nodeSelector:
+        kubernetes.io/arch: arm64

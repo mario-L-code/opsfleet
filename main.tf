@@ -1,6 +1,6 @@
 module "vpc" {
   source       = "./modules/vpc"
-  cluster_name = "opsfleet_cluster"
+  cluster_name = "opsfleet"
 }
 
 module "eks" {

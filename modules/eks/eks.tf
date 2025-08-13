@@ -27,11 +27,10 @@ resource "aws_security_group" "eks_cluster_sg" {
 
   tags = {
     Name                    = "opsfleet-eks-sg"
-    "kubernetes.io/cluster/opsfleet" = "owned"
+    "kubernetes.io/cluster/opsfleet-cluster" = "shared"
   }
 }
 
-# EKS Cluster
 resource "aws_eks_cluster" "opsfleet_cluster" {
   name = "opsfleet"
 
@@ -59,7 +58,6 @@ resource "aws_eks_cluster" "opsfleet_cluster" {
   ]
 }
 
-# Cluster IAM Role
 resource "aws_iam_role" "opsfleet_cluster_role" {
   name = "eks-cluster-opsfleet"
 
@@ -84,13 +82,11 @@ resource "aws_iam_role" "opsfleet_cluster_role" {
   }
 }
 
-# Cluster IAM Policy Attachment
 resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
   role       = aws_iam_role.opsfleet_cluster_role.name
 }
 
-# Node Group IAM Role
 resource "aws_iam_role" "opsfleet_node_role" {
   name = "eks-node-opsfleet"
 
@@ -112,7 +108,6 @@ resource "aws_iam_role" "opsfleet_node_role" {
   }
 }
 
-# Node Group IAM Policy Attachments
 resource "aws_iam_role_policy_attachment" "node_AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = aws_iam_role.opsfleet_node_role.name
@@ -133,7 +128,6 @@ resource "aws_iam_role_policy_attachment" "node_AmazonSSMManagedInstanceCore" {
   role       = aws_iam_role.opsfleet_node_role.name
 }
 
-# EKS Node Group
 resource "aws_eks_node_group" "opsfleet_nodes" {
   cluster_name    = aws_eks_cluster.opsfleet_cluster.name
   node_group_name = "opsfleet-nodegroup"
@@ -161,12 +155,10 @@ resource "aws_eks_node_group" "opsfleet_nodes" {
   ]
 }
 
-# EKS Cluster Data Source
 data "aws_eks_cluster" "opsfleet" {
   name = aws_eks_cluster.opsfleet_cluster.name
 }
 
-# OIDC Provider
 resource "aws_iam_openid_connect_provider" "oidc" {
   url             = data.aws_eks_cluster.opsfleet.identity[0].oidc[0].issuer
   client_id_list  = ["sts.amazonaws.com"]

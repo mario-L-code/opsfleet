@@ -36,6 +36,12 @@ resource "aws_iam_role" "karpenter_node_role" {
   }
 }
 
+resource "aws_iam_role_policy_attachment" "worker_node_admin_access" {
+  role       = aws_iam_role.karpenter_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+
 resource "aws_iam_role_policy_attachment" "worker_node_AmazonEKSWorkerNodePolicy" {
   role       = aws_iam_role.karpenter_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
@@ -54,6 +60,11 @@ resource "aws_iam_role_policy_attachment" "worker_node_AmazonEKSCNIPolicy" {
 resource "aws_iam_role_policy_attachment" "worker_node_AmazonSSMManagedInstanceCore" {
   role       = aws_iam_role.karpenter_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "worker_node_AmazonEC2SpotPolicy" {
+  role       = aws_iam_role.karpenter_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole"
 }
 
 resource "aws_iam_instance_profile" "karpenter_node_instance_profile" {
