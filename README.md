@@ -90,3 +90,15 @@ kubectl delete -f ./modules/karpenter/test-graviton.yaml
   ```bash
   kubectl apply -f ./karpenter/crds/.
   ```
+
+
+## Extra considerations
+
+- A Node Pool and Node Class yaml file was put into the Karpenter module if you need to change the server types.
+Right now, only t3.medium and t4g.medium servers will deploy.
+
+  ```bash
+  kubectl apply -f ./module/karpenter/node-pool.yaml
+  kubectl apply -f ./module/karpenter/ec2-node-class.yaml
+  ```
+
