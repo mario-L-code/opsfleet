@@ -27,7 +27,10 @@ resource "aws_security_group" "eks_cluster_sg" {
 
   tags = {
     Name                    = "opsfleet-eks-sg"
-    "kubernetes.io/cluster/opsfleet-cluster" = "shared"
+    # "kubernetes.io/cluster/opsfleet-cluster" = "shared"
+    # "kubernetes.io/cluster/opsfleet" = "shared"
+    "kubernetes.io/cluster/opsfleet" = "owned"
+
   }
 }
 
@@ -50,6 +53,7 @@ resource "aws_eks_cluster" "opsfleet_cluster" {
 
   tags = {
     Name = "opsfleet"
+    "kubernetes.io/cluster/opsfleet" = "owned"
   }
 
   depends_on = [
@@ -79,6 +83,7 @@ resource "aws_iam_role" "opsfleet_cluster_role" {
 
   tags = {
     Name = "opsfleet-eks-cluster-role"
+    "kubernetes.io/cluster/opsfleet" = "owned"
   }
 }
 
@@ -105,6 +110,7 @@ resource "aws_iam_role" "opsfleet_node_role" {
 
   tags = {
     Name = "opsfleet-eks-node-role"
+    "kubernetes.io/cluster/opsfleet" = "owned"
   }
 }
 
@@ -145,6 +151,7 @@ resource "aws_eks_node_group" "opsfleet_nodes" {
   tags = {
     Name                    = "opsfleet-nodegroup"
     "karpenter.sh/discovery" = "opsfleet"
+    "kubernetes.io/cluster/opsfleet" = "owned"
   }
 
   depends_on = [
@@ -166,5 +173,6 @@ resource "aws_iam_openid_connect_provider" "oidc" {
 
   tags = {
     Name = "opsfleet-eks-oidc"
+
   }
 }

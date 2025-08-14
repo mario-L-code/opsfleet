@@ -39,25 +39,6 @@ This repository contains Terraform code to deploy an AWS EKS cluster with Karpen
 ## Running Pods on x86 or Graviton Instances
 Karpenter provisions nodes based on pod requirements. To target x86 (`amd64`) or Graviton (`arm64`) instances, use a `nodeSelector` in your pod/deployment manifest.
 
-### Example: Run a Pod on x86
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: x86-pod
-  namespace: default
-spec:
-  containers:
-  - name: nginx
-    image: nginx
-    resources:
-      requests:
-        cpu: "500m"
-        memory: "512Mi"
-  nodeSelector:
-    kubernetes.io/arch: amd64
-```
-
 Deployment YAML files are ready to go for both x86 and Graviton servers:
 ```bash
 kubectl apply -f ./modules/karpenter/test-x86.yaml

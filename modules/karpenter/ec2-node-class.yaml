@@ -19,7 +19,7 @@ spec:
 
   securityGroupSelectorTerms:
     - tags:
-        kubernetes.io/cluster/opsfleet-cluster: shared
+        kubernetes.io/cluster/opsfleet: owned
 
   blockDeviceMappings:
     - deviceName: /dev/xvda
@@ -30,6 +30,7 @@ spec:
 
   tags:
     karpenter.sh/discovery: opsfleet
+
 
   userData: |
     #!/bin/bash
@@ -48,8 +49,8 @@ spec:
           LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUyZ0F3SUJBZ0lJT1BJdnZwdGliUHN3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TlRBNE1UTXdNVE16TlRSYUZ3MHpOVEE0TVRFd01UTTROVFJhTUJVeApFekFSQmdOVkJBTVRDbXQxWW1WeWJtVjBaWE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUMybE92c3RtdVdGc3dMOXZIN21tVHhEZkFKejNjUEI3eXN4SEtCN2JZU1BmWk1HbDN3cy83K00wbHAKK1FCSlFmSDNZVnRPc1RRdkgvQ0ZFOFkzYVNuUS9ja1JEOHVKSXhlcXNHMEFpZzhiOWhRYVhVSUNPYXRBNldPdApCMDU0ci9wdXpxbzk2TVhCdEVyY0JrblJaRUlmbDFNeEpPV0JNN2Jud2pudUt5TjRJZXJianJRSzdmbnZLQ2hsCjV2TE14TmFWMlltTkJsb2JISFZTeGZkdUJDaGhwd2pvOVpxemkrSFhQWHFRREtEby9DSkU0c2F3WXFuV09PYzQKRHJiUVVJNGcrUFlLTXZtUnZLTWdtYnhYcVpJeEJTZlcwdzh5aDhpOVB6ZWkwMi9Nek9nSm9QVnVzZ1RrTStjUwp6YmR2OHVaU01xRnl0VDZEeEp3K3JFazdxb3lWQWdNQkFBR2pXVEJYTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJTbUR4MGZFN1hBOVQvRWJPREt5aXI5ZFpZQjJqQVYKQmdOVkhSRUVEakFNZ2dwcmRXSmxjbTVsZEdWek1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQTVJczQyRDczQgpaTllyNkk0a0JLSFgrYitZdFVkaXhqNVZEYm9SWHBRK1Q4OVZISS9HOUVZZndTcTZFdEJMUmZXOUlYa09IT1Q4CjVYS3VrSE5xdHE4dWJxQjJ2OGZmNm9qSWlkb3FKZFBuUHVFNEFGejhya1piRTk4TDJWcXFINGdnNlUwbmtoSjAKTXBKOTgzdE1QYkJvNnFkWnhiWFhVWFFjcXNnZmphUEJIdWU4WFZnUlMrRXN5bUx2YzVqdEZOaDVicnJ4NE5CRQo1U0lUZlo0Wm9XRFI3YWtBQzJVWGxsVDJETEVCVzE4VnVJSkhDYVpHL3hpZXpoNWZuTW9VU3ZyTmRqcTJmUDZ4Cnc3SDBsTHk1TkxYNmlNeERYWXNmeUVnVGVsOWkvbGdzT1VuTXZublQ4YUFIS2NjZ082eUZnWHA1c1VwWEhyREUKTXpvaWI2Q0FyYnFFCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
       kubelet:
         extraArgs:
-          node-labels: karpenter.sh/discovery=opsfleet,karpenter.sh/nodepool=default
-          register-with-taints: karpenter.sh/unregistered=NoExecute
+          node-labels: karpenter.sh/discovery=opsfleet,karpenter.sh/nodepool=default,kubernetes.io/cluster/opsfleet=owned
+
     EOF
 
     /usr/bin/nodeadm init --config-source file:///etc/eks/nodeadm.yaml

@@ -33,6 +33,7 @@ resource "aws_iam_role" "karpenter_node_role" {
 
   tags = {
     "karpenter.sh/discovery" = var.cluster_name
+    "kubernetes.io/cluster/opsfleet" = "owned"
   }
 }
 

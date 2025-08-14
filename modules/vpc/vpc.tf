@@ -6,7 +6,7 @@ resource "aws_vpc" "opsfleet_vpc" {
 
   tags = {
     Name                     = "opsfleet_vpc"
-    "kubernetes.io/cluster/${var.cluster_name}-cluster" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "karpenter.sh/discovery" = var.cluster_name
   }
 }
@@ -40,7 +40,7 @@ resource "aws_subnet" "pub_sub_1" {
 
   tags = {
     Name                     = "opsfleet_pub_sub_1"
-    "kubernetes.io/cluster/${var.cluster_name}-cluster" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "karpenter.sh/discovery" = var.cluster_name
   }
 }
@@ -53,7 +53,7 @@ resource "aws_subnet" "pub_sub_2" {
 
   tags = {
     Name                     = "opsfleet_pub_sub_2"
-    "kubernetes.io/cluster/${var.cluster_name}-cluster" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "karpenter.sh/discovery" = var.cluster_name
   }
 }
@@ -113,7 +113,7 @@ resource "aws_subnet" "priv_sub_1" {
 
   tags = {
     Name                     = "opsfleet_priv_sub_1"
-    "kubernetes.io/cluster/${var.cluster_name}-cluster" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "karpenter.sh/discovery" = var.cluster_name
   }
 }
@@ -125,7 +125,7 @@ resource "aws_subnet" "priv_sub_2" {
 
   tags = {
     Name                     = "opsfleet_priv_sub_2"
-    "kubernetes.io/cluster/${var.cluster_name}-cluster" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "karpenter.sh/discovery" = var.cluster_name
   }
 }
