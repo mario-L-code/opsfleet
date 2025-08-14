@@ -67,33 +67,33 @@ resource "aws_iam_instance_profile" "karpenter_node_instance_profile" {
   role = aws_iam_role.karpenter_node_role.name
 }
 
-resource "null_resource" "verify_crds" {
-  provisioner "local-exec" {
-    command = <<EOT
-      export AWS_PROFILE=mike
-      until kubectl get crd nodepools.karpenter.sh >/dev/null 2>&1 && kubectl get crd ec2nodeclasses.karpenter.k8s.aws >/dev/null 2>&1 && kubectl get crd nodeclaims.karpenter.sh >/dev/null 2>&1; do
-        echo "Waiting for Karpenter CRDs to be available..."
-        sleep 5
-      done
-      echo "Karpenter CRDs are available."
-    EOT
-  }
-}
+# resource "null_resource" "verify_crds" {
+#   provisioner "local-exec" {
+#     command = <<EOT
+#       export AWS_PROFILE=mike
+#       until kubectl get crd nodepools.karpenter.sh >/dev/null 2>&1 && kubectl get crd ec2nodeclasses.karpenter.k8s.aws >/dev/null 2>&1 && kubectl get crd nodeclaims.karpenter.sh >/dev/null 2>&1; do
+#         echo "Waiting for Karpenter CRDs to be available..."
+#         sleep 5
+#       done
+#       echo "Karpenter CRDs are available."
+#     EOT
+#   }
+# }
 
 resource "helm_release" "karpenter" {
-  timeout = 75
+  timeout = 150
   name = "karpenter"
   namespace = "karpenter"
   repository = "oci://public.ecr.aws/karpenter"
   chart = "karpenter"
   version = "1.6.1"
-  skip_crds = true
+  skip_crds = false
   create_namespace = true
 
   depends_on = [
     module.karpenter_irsa,
     aws_iam_instance_profile.karpenter_node_instance_profile,
-    null_resource.verify_crds
+    # null_resource.verify_crds
   ]
 
   set = [

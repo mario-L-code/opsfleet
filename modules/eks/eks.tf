@@ -36,7 +36,7 @@ resource "aws_eks_cluster" "opsfleet_cluster" {
   name = "opsfleet"
 
   access_config {
-    authentication_mode = "API"
+    authentication_mode = "API_AND_CONFIG_MAP"
   }
 
   role_arn = aws_iam_role.opsfleet_cluster_role.arn
@@ -175,23 +175,48 @@ resource "aws_iam_openid_connect_provider" "oidc" {
   }
 }
 
-# Access is only through API. Must manually add users.
+# Get the current IAM user ARN dynamically
+data "external" "current_user" {
+  program = [
+    "bash",
+    "-c",
+    "arn=$(aws sts get-caller-identity --query Arn --output text); echo \"{\\\"result\\\": \\\"$arn\\\"}\""
+  ]
+}
 
-# resource "kubernetes_config_map" "aws_auth" {
-#   metadata {
-#     name      = "aws-auth"
-#     namespace = "kube-system"
-#   }
 
-#   data = {
-#     mapRoles = yamlencode([
-#       {
-#         rolearn  = var.karpenter_node_role
-#         username = "system:node:{{EC2PrivateDNSName}}"
-#         groups   = ["system:bootstrappers", "system:nodes"]
-#       }
-#     ])
-#   }
 
-#   depends_on = [aws_eks_node_group.opsfleet_nodes]
-# }
+# aws-auth ConfigMap
+resource "kubernetes_config_map" "aws_auth" {
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
+
+  data = {
+    mapRoles = yamlencode([
+      {
+        rolearn  = aws_iam_role.opsfleet_node_role.arn      
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups   = ["system:bootstrappers", "system:nodes"]
+      },
+      {
+        rolearn  = var.karpenter_node_role  
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups   = ["system:bootstrappers", "system:nodes"]
+      }
+    ])
+
+    mapUsers = yamlencode([
+      {
+        userarn  = data.external.current_user.result
+        username = "current-user"
+        groups   = ["system:masters"]
+      }
+    ])
+  }
+
+  depends_on = [
+    aws_eks_cluster.opsfleet_cluster
+  ]
+}
