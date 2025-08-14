@@ -5,7 +5,8 @@
 
 ---
 
-<div style="width: 640px; height: 480px; margin: 10px; position: relative;"><iframe allowfullscreen frameborder="0" style="width:640px; height:480px" src="https://lucid.app/documents/embedded/219dc40d-f232-4f9a-a77c-980e3e69c5c3" id="th7G6LIN1vns"></iframe></div>
+<img width="2349" height="1400" alt="Blank document" src="https://github.com/user-attachments/assets/27f5756b-7687-46a0-a09f-fb8d06cce828" />
+
 
 
 ## AWS Account Structure (Organizations)
