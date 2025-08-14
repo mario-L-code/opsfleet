@@ -16,3 +16,7 @@ variable "private_subnet_ids" {
 variable "subnet_ids" {
   type        = list(string)
 }
+
+variable "karpenter_node_role" {
+  type = string
+}

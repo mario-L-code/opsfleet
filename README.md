@@ -11,33 +11,27 @@ This repository contains Terraform code to deploy an AWS EKS cluster with Karpen
 ## Setup Instructions
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone https://github.com/mario-L-code/opsfleet.git
+   cd opsfleet
    ```
 
-2. **Set Variables**:
-   Create a `terraform.tfvars` file:
-   ```hcl
-   region = "us-east-1"
-   ```
-
-3. **Initialize Terraform**:
+2. **Initialize Terraform**:
    ```bash
    terraform init
    ```
 
-4. **Apply Terraform**:
+3. **Apply Terraform**:
    ```bash
    terraform apply
    ```
 
-5. **Update kubeconfig**:
+4. **Update kubeconfig**:
    ```bash
    aws eks update-kubeconfig --region us-east-1 --name opsfleet 
    ```
 
 ## Running Pods on x86 or Graviton Instances
-Karpenter provisions nodes based on pod requirements. To target x86 (`amd64`) or Graviton (`arm64`) instances, use a `nodeSelector` in your pod/deployment manifest.
+Karpenter provisions nodes based on pod requirements. It deploys x86 (`amd64`) or Graviton (`arm64`) instances, depending on the deployment requirements. 
 
 Deployment YAML files are ready to go for both x86 and Graviton servers:
 ```bash
@@ -62,15 +56,15 @@ kubectl delete -f ./modules/karpenter/test-x86.yaml
 kubectl delete -f ./modules/karpenter/test-graviton.yaml
 ```
 
-## Extra CRDs installed for Karpenter to function
-- Self-signed cert manager:
+## Important
+
+- Extra CRDs were deployed to make Karpenter function. Self-signed cert manager and Karpenter CRDs
   ```bash
-  kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml  
+  kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml 
+  kubectl apply -f ./karpenter/crds/. 
   ```
-- Karpenter CRDs:
-  ```bash
-  kubectl apply -f ./karpenter/crds/.
-  ```
+- This cluster is API auth only. Must add Karpenter and any extra IAM roles to access entries manually for access to cluster
+
 
 
 ## Extra considerations

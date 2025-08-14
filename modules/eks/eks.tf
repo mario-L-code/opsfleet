@@ -27,8 +27,6 @@ resource "aws_security_group" "eks_cluster_sg" {
 
   tags = {
     Name                    = "opsfleet-eks-sg"
-    # "kubernetes.io/cluster/opsfleet-cluster" = "shared"
-    # "kubernetes.io/cluster/opsfleet" = "shared"
     "kubernetes.io/cluster/opsfleet" = "owned"
 
   }
@@ -176,3 +174,24 @@ resource "aws_iam_openid_connect_provider" "oidc" {
 
   }
 }
+
+# Access is only through API. Must manually add users.
+
+# resource "kubernetes_config_map" "aws_auth" {
+#   metadata {
+#     name      = "aws-auth"
+#     namespace = "kube-system"
+#   }
+
+#   data = {
+#     mapRoles = yamlencode([
+#       {
+#         rolearn  = var.karpenter_node_role
+#         username = "system:node:{{EC2PrivateDNSName}}"
+#         groups   = ["system:bootstrappers", "system:nodes"]
+#       }
+#     ])
+#   }
+
+#   depends_on = [aws_eks_node_group.opsfleet_nodes]
+# }

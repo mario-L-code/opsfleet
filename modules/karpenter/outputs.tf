@@ -9,3 +9,8 @@ output "cluster_name" {
 output "cluster_endpoint" {
   value = var.cluster_endpoint
 }
+
+output "karpenter_node_role" {
+  value = aws_iam_role.karpenter_node_role.arn
+  
+}

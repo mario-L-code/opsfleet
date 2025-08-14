@@ -37,12 +37,6 @@ resource "aws_iam_role" "karpenter_node_role" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "worker_node_admin_access" {
-  role       = aws_iam_role.karpenter_node_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-}
-
-
 resource "aws_iam_role_policy_attachment" "worker_node_AmazonEKSWorkerNodePolicy" {
   role       = aws_iam_role.karpenter_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
