@@ -4,7 +4,7 @@ metadata:
   name: test-graviton
   namespace: default
 spec:
-  replicas: 11
+  replicas: 20
   selector:
     matchLabels:
       app: test

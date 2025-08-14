@@ -1,7 +1,7 @@
 apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
-  name: default
+  name: default2
 spec:
   amiFamily: AL2023
   amiSelectorTerms:
@@ -30,26 +30,50 @@ spec:
 
   tags:
     karpenter.sh/discovery: opsfleet
+    karpenter.sh/servers: newnode
 
 
   userData: |
     #!/bin/bash
     set -xe
 
-    cat <<'EOF' >/etc/eks/nodeadm.yaml
+    TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
+    -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+
+    REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
+    http://169.254.169.254/latest/meta-data/placement/region)
+
+
+    CLUSTER_NAME="opsfleet"
+
+
+    API_SERVER=$(aws eks describe-cluster \
+    --region $REGION \
+    --name $CLUSTER_NAME \
+    --query "cluster.endpoint" \
+    --output text)
+
+    CA_CERT=$(aws eks describe-cluster \
+    --region $REGION \
+    --name $CLUSTER_NAME \
+    --query "cluster.certificateAuthority.data" \
+    --output text)
+
+    cat <<EOF >/etc/eks/nodeadm.yaml
     apiVersion: node.eks.aws/v1alpha1
     kind: NodeConfig
     spec:
       cluster:
-        name: opsfleet
+        name: $CLUSTER_NAME
         cidr: 172.20.0.0/16
         dnsServiceIP: 10.100.0.0/16
-        apiServerEndpoint: https://26B3C024172CC2B6659471BBEB1995EC.gr7.us-east-1.eks.amazonaws.com
+        apiServerEndpoint: $API_SERVER
         certificateAuthority: |
-          LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUyZ0F3SUJBZ0lJT1BJdnZwdGliUHN3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TlRBNE1UTXdNVE16TlRSYUZ3MHpOVEE0TVRFd01UTTROVFJhTUJVeApFekFSQmdOVkJBTVRDbXQxWW1WeWJtVjBaWE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUMybE92c3RtdVdGc3dMOXZIN21tVHhEZkFKejNjUEI3eXN4SEtCN2JZU1BmWk1HbDN3cy83K00wbHAKK1FCSlFmSDNZVnRPc1RRdkgvQ0ZFOFkzYVNuUS9ja1JEOHVKSXhlcXNHMEFpZzhiOWhRYVhVSUNPYXRBNldPdApCMDU0ci9wdXpxbzk2TVhCdEVyY0JrblJaRUlmbDFNeEpPV0JNN2Jud2pudUt5TjRJZXJianJRSzdmbnZLQ2hsCjV2TE14TmFWMlltTkJsb2JISFZTeGZkdUJDaGhwd2pvOVpxemkrSFhQWHFRREtEby9DSkU0c2F3WXFuV09PYzQKRHJiUVVJNGcrUFlLTXZtUnZLTWdtYnhYcVpJeEJTZlcwdzh5aDhpOVB6ZWkwMi9Nek9nSm9QVnVzZ1RrTStjUwp6YmR2OHVaU01xRnl0VDZEeEp3K3JFazdxb3lWQWdNQkFBR2pXVEJYTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJTbUR4MGZFN1hBOVQvRWJPREt5aXI5ZFpZQjJqQVYKQmdOVkhSRUVEakFNZ2dwcmRXSmxjbTVsZEdWek1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQTVJczQyRDczQgpaTllyNkk0a0JLSFgrYitZdFVkaXhqNVZEYm9SWHBRK1Q4OVZISS9HOUVZZndTcTZFdEJMUmZXOUlYa09IT1Q4CjVYS3VrSE5xdHE4dWJxQjJ2OGZmNm9qSWlkb3FKZFBuUHVFNEFGejhya1piRTk4TDJWcXFINGdnNlUwbmtoSjAKTXBKOTgzdE1QYkJvNnFkWnhiWFhVWFFjcXNnZmphUEJIdWU4WFZnUlMrRXN5bUx2YzVqdEZOaDVicnJ4NE5CRQo1U0lUZlo0Wm9XRFI3YWtBQzJVWGxsVDJETEVCVzE4VnVJSkhDYVpHL3hpZXpoNWZuTW9VU3ZyTmRqcTJmUDZ4Cnc3SDBsTHk1TkxYNmlNeERYWXNmeUVnVGVsOWkvbGdzT1VuTXZublQ4YUFIS2NjZ082eUZnWHA1c1VwWEhyREUKTXpvaWI2Q0FyYnFFCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+          $CA_CERT
       kubelet:
         extraArgs:
-          node-labels: karpenter.sh/discovery=opsfleet,karpenter.sh/nodepool=default,kubernetes.io/cluster/opsfleet=owned
+          node-labels: karpenter.sh/discovery=opsfleet,karpenter.sh/nodepool=default,kubernetes.io/cluster/opsfleet=owned,karpenter.sh/nodepool: newnode
 
     EOF
 

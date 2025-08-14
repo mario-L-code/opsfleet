@@ -4,7 +4,7 @@ metadata:
   name: test-x86
   namespace: default
 spec:
-  replicas: 10
+  replicas: 20
   selector:
     matchLabels:
       app: test
