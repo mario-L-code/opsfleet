@@ -32,7 +32,7 @@ This repository contains Terraform code to deploy an AWS EKS cluster with Karpen
 
 ## Important
 
-- If you don't have access to the cluster after it's made, manually add your user ARN to the access entriees in AWS EKS.
+- If you don't have access to the cluster after it's made, manually add your user ARN to the access entries in AWS EKS.
   Can't make a configmap without access and can't access without configmap. Chicken and egg problem.
 
 ## Creating the node pool and node classes
@@ -40,8 +40,8 @@ This repository contains Terraform code to deploy an AWS EKS cluster with Karpen
 - A Node Pool and Node Class yaml files was put into the Karpenter module. Must first be made before deploying pods.
 
 ```bash
-kubectl apply -f ./module/karpenter/node-pool.yaml
-kubectl apply -f ./module/karpenter/ec2-node-class.yaml
+kubectl apply -f ./modules/karpenter/node-pool.yaml
+kubectl apply -f ./modules/karpenter/ec2-node-class.yaml
 ```
 
 ## Running Pods on x86 or Graviton Instances
