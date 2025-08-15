@@ -25,8 +25,8 @@ Use **AWS Organizations** with consolidated billing and SSO.
 ## Network Design
 
 - **VPCs per environment** (`dev`, `staging`, `prod`) in `us-east-1` with non-overlapping CIDR blocks to allow future VPC peering.  
-  - **3 AZs per VPC** for high availability.  
-  - **Subnets:** 3 public (for ALB/NAT) and 3 private (for EKS nodes and RDS).  
+  - **Minimum 2 AZs per VPC** for high availability.  
+  - **Subnets:** 2 public (for ALB/NAT) and 2 private (for EKS nodes and RDS).  
   - **Routing:** Internet Gateway in public subnets, 2 NAT Gateways in private subnets; route tables per subnet type.  
   - **Security:** Security Groups for pods and DB, NACLs for subnet-level filtering.  
   - **Ingress & WAF:** ALB Ingress Controller with AWS WAF for L7 protection; optional Network Firewall for L3/L4 inspection.  
@@ -55,8 +55,8 @@ Use **AWS Organizations** with consolidated billing and SSO.
   - **Secrets:** External Secrets Operator integrates with Secrets Manager.  
   - **Autoscaling:** Horizontal Pod Autoscaler for pods; Karpenter scales nodes.  
   - **Resource limits/requests** to prevent noisy neighbor issues.  
-  - **Ingress:** ALB Ingress Controller with path-based routing (`/` → SPA, `/api` → REST API).  
-  - **Security:** AWS WAF for DDoS protection, Pod Security Standards enforced.  
+  - **Ingress:** ALB Ingress Controller with path-based routing (`/api` → REST API).  
+  - **Security:** AWS WAF for DDoS protection, security groups on nodes. 
   - **Optional:** CloudFront distribution in front of ALB for caching.
 
 - **Docker Containerization**
@@ -64,9 +64,9 @@ Use **AWS Organizations** with consolidated billing and SSO.
   - Versioned, incremental images stored in ECR.
 
 - **CI/CD & GitOps**
-  - Developers push to GitHub; workflows package, scan, and push images to ECR.  
+  - Developers push app code to GitHub; workflows package, scan, and push images to ECR.  
   - Deployments pull images from ECR to EKS; 5–10 replicas per service.  
-  - Feature branches deploy to dev/staging; main branch merges trigger production.  
+  - Feature branches deploy to dev. Merging to main branch triggers staging env. Approve PR to send to production.  
   - Optional: ArgoCD for GitOps-based deployments.  
   - Deployment strategies: rolling or canary with PodDisruptionBudgets.  
   - Health: Liveness and readiness probes implemented.
@@ -77,12 +77,12 @@ Use **AWS Organizations** with consolidated billing and SSO.
 
 - **Requirement:** Highly available PostgreSQL server using **RDS**.  
   - Dev: smaller instance with minimal data.  
-  - Staging/Prod: multi-AZ with read replicas, limited IAM roles.  
+  - Staging/Prod: multi-AZ with multiple read replicas. limited IAM roles have access to them.
   - **Security:** Private subnet, Security Groups, IAM authentication, encrypted at rest (KMS), SSL/TLS for in-transit.  
-  - **Monitoring:** Enhanced Monitoring enabled; storage autoscaling.  
+  - **Monitoring:** Enhanced Monitoring enabled for RDS to get more data faster.
   - **Disaster Recovery:** Multi-AZ in `us-west-2` for warm standby; cross-region automated snapshot backups daily.  
   - Optional: RDS Proxy to manage connection pooling.  
-  - Optional: Parameter tuning and minor version upgrades tested in staging before production.
+
 
 ---
 

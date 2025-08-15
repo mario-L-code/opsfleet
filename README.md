@@ -30,6 +30,20 @@ This repository contains Terraform code to deploy an AWS EKS cluster with Karpen
    aws eks update-kubeconfig --region us-east-1 --name opsfleet 
    ```
 
+## Important
+
+- If you don't have access to the cluster after it's made, manually add your user ARN to the access entriees in AWS EKS.
+  Can't make a configmap without access and can't access without configmap. Chicken and egg problem.
+
+## Creating the node pool and node classes
+
+- A Node Pool and Node Class yaml files was put into the Karpenter module. Must first be made before deploying pods.
+
+```bash
+kubectl apply -f ./module/karpenter/node-pool.yaml
+kubectl apply -f ./module/karpenter/ec2-node-class.yaml
+```
+
 ## Running Pods on x86 or Graviton Instances
 Karpenter provisions nodes based on pod requirements. It deploys x86 (`amd64`) or Graviton (`arm64`) instances, depending on the deployment requirements. 
 
@@ -55,25 +69,3 @@ terraform destroy
 kubectl delete -f ./modules/karpenter/test-x86.yaml
 kubectl delete -f ./modules/karpenter/test-graviton.yaml
 ```
-
-## Important
-
-- Extra CRDs were deployed to make Karpenter function. Self-signed cert manager and Karpenter CRDs
-  ```bash
-  kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml 
-  kubectl apply -f ./karpenter/crds/. 
-  ```
-- This cluster is API auth only. Must add Karpenter and any extra IAM roles to access entries manually for access to cluster
-
-
-
-## Extra considerations
-
-- A Node Pool and Node Class yaml file was put into the Karpenter module if you need to change the server types.
-Right now, only t3.medium and t4g.medium servers will deploy.
-
-  ```bash
-  kubectl apply -f ./module/karpenter/node-pool.yaml
-  kubectl apply -f ./module/karpenter/ec2-node-class.yaml
-  ```
-
